@@ -1,0 +1,37 @@
+        <a-scene>
+        <a-box
+            position="0 1 -5"
+            depth="2"
+            height="2"
+            width="2"
+            color="rgb(255, 0, 0)"
+            animation="
+                property: rotation;
+                from: 0 0 0;
+                to: 0 360 0;
+                dur: 2000;
+                easing: linear;
+                loop: true;
+            "
+            
+            animation__2="
+            property:color;
+            from: rgb(255, 0, 0);
+            to:rgb(255, 255, 0);
+            dir:alternate;
+            loop:true;
+            dur:5000;
+            "
+            animation__3="
+            property:position;
+            from: 0 1 -5;
+            to: 0 5 -5;
+            dir:alternate;
+            loop:true;
+            dur:200;
+            "
+            
+            
+            
+            
+        ></a-box></a-box>
