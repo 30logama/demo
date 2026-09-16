@@ -14,7 +14,15 @@
                     "
             ></a-box>
             
-                    <a-cone position="6 0 -20" color="blue" radius-bottom="2.5" radius-top="0.5" height="5"></a-cone>
+                    <a-cone position="6 0 -20" rgb="(0, 0, 255)" radius-bottom="2.5" radius-top="0.5" height="5"
+                    animation="
+                    property:color;
+                    from: rgb(0, 0, 255);
+                    to: rgb(0, 255, 0);
+                    loop:true;
+                    dir:alternate;
+                    "
+                    ></a-cone>
                     
                     <a-cone position="8 5 -20" color="blue" rotation="0 0 60" radius-bottom="1" radius-top="0"
                     animation="
@@ -61,7 +69,16 @@
                     "
                     ></a-dodecahedron>
                     
-
+                    <a-torus position="-6 12 -20" rotation="0 90 0" color="blue"
+                    animation="
+                    property:rotation;
+                    from: 0 90 0;
+                    to: 0 360 0;
+                    loop:true;
+                    dir:alternate;
+                    "
+                    
+                    ></a-torus>
         </a-scene>
     </body>
 </html>
