@@ -5,43 +5,61 @@
     </head>
     <body>
         <a-scene>
-        <a-box
-            position="0 1 -5"
-            depth="2"
-            height="2"
-            width="2"
-            color="rgb(255, 0, 0)"
-            animation="
-                property: rotation;
-                from: 0 0 0;
-                to: 0 360 0;
-                dur: 2000;
-                easing: linear;
-                loop: true;
-            "
+                    <a-box position="6 3 -20" height="1" width="10" depth="2" rotation="0 0 0"color="green"
+                    animation="
+                    property: rotation;
+                    from: 0 0 0;
+                    to: 0 0 45;
+                    dur: 500;
+                    "
+            ></a-box>
+
+                    <a-cone position="8 5 -20" color="blue" rotation="0 0 60" radius-bottom="1" radius-top="0"
+                    animation="
+                    property: position;
+                    from: 8 5 -20;
+                    to: -18 20 -20;
+                    dur: 2200;
+                    "
+                   animation__2="
+                    property: scale;
+                    from: 1 1 1;
+                    to: 1.5 1.5 1.5;
+                    dur: 1000; 
+                    "
+
+            ></a-cone>
+
+                 <a-sphere color="darkred" radius="3"position="-6 12 -20"
+                    animation="
+                    property: opacity;
+                    from: 1 1 1;
+                    to: 0 0 0;
+                    dur: 3000;
             
-            animation__2="
-            property:color;
-            from: rgb(255, 0, 0);
-            to:rgb(255, 255, 0);
-            dir:alternate;
-            loop:true;
-            dur:5000;
-            "
-            animation__3="
-            property:position;
-            from: 0 1 -5;
-            to: 0 5 -5;
-            dir:alternate;
-            loop:true;
-            dur:200;
-            "
-            
-            
-            
-            
-        ></a-box></a-box>
-        
+                    "
+                    ></a-sphere>
+                    
+                    <a-dodecahedron rgb="(255, 0, 0)" radius="1" position="-6 12 -20" 
+                    animation="
+                    property:visible;
+                    from:false;
+                    to: true;
+                    dur:3500;
+                    
+                    "
+                  animation__2="
+                    property:color;
+                    from: rgb(255, 0, 0);
+                    to: rgb(0, 0, 110);
+                    dur:2000;
+                    loop:true;
+                    dir:alternate;
+
+                    "
+                    ></a-dodecahedron>
+                    
+
         </a-scene>
     </body>
 </html>
