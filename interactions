@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://aframe.io/releases/1.0.0/aframe.min.js"></script>
+    </head>
+    <body>
+        <a-scene>
+                        
+        <a-plane position="0 0 -10" color="green" rotation="-90 0 0" width="15" height="15"></a-plane>                                
+        
+        <a-box position="3 1 0" color="red" width="1.5" height="1.5" depth="1.5"
+        animation="
+        property:position;
+        from: 3 1 0;
+        to: 3 1 -20;
+        easeIn: back;
+        loop:true;
+        dir:alternate;
+        "
+        animation__2="
+        property:visible;
+        from:true;
+        to:false;
+        startEvents:click;
+         "
+        ></a-box>        
+        
+        <a-cone color="yellow" position="-3 2 -10" radius-bottom="1" radius-top="0" height="3"
+        animation="
+        property:position;
+        from: -3 2 -10;
+        to: -3 15 -10;
+        easeOut:bounce;
+        loop:true;
+        dir:alternate;
+        "
+        animation__2="
+        property:visible;
+        from:true;
+        to:false;
+        startEvents:click;
+         "
+        ></a-cone> 
+         
+         <a-sphere position="0 15 -20" color="blue"
+         animation="
+         property:position;
+         from: 0 15 -20;
+         to: 0 1 -10;
+         easeInOut:elastic;
+         loop:true;
+         dir:alternate;
+         "
+        animation__2="
+        property:visible;
+        from:true;
+        to:false;
+        startEvents:click;
+         "
+         ></a-sphere>
+                        
+        <a-camera>
+            <a-cursor></a-cursor>
+        </a-camera>                
+        </a-scene>
+    </body>
+</html>
