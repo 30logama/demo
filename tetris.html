@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>A-Frame WebVR Tetris 3D</title>
-  <!-- Standard A-Frame Library -->
+  <title>A-Frame WebVR 3D Tetris</title>
+  <!-- Standard A-Frame WebXR Library -->
   <script src="https://aframe.io/releases/1.8.0/aframe.min.js"></script>
   <style>
     body {
       margin: 0;
       overflow: hidden;
-      background-color: #030310;
+      background-color: #02020a;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       user-select: none;
+      -webkit-user-select: none;
     }
     #vr-instructions {
       position: absolute;
@@ -33,7 +34,7 @@
     #vr-instructions b {
       color: #ff00aa;
     }
-    /* 2D Overlay for On-Screen Desktop Clicking */
+    /* Desktop On-Screen Overlay Controls */
     #desktop-controls {
       position: absolute;
       bottom: 20px;
@@ -84,34 +85,35 @@
 <body>
 
   <div id="vr-instructions">
-    💻 <b>DESKTOP & VR 3D TETRIS</b><br/>
+    🎮 <b>DESKTOP & WEBVR TETRIS 3D</b><br/>
     • <b>Keyboard:</b> WASD / Arrow Keys | <b>Space:</b> Hard Drop | <b>P:</b> Pause<br/>
-    • <b>Mouse:</b> Click columns on grid or use on-screen buttons below
+    • <b>Mouse / VR Gaze:</b> Click grid columns to move piece, or use 3D / 2D buttons
   </div>
 
   <!-- On-Screen Desktop Quick-Controls -->
   <div id="desktop-controls">
     <div class="btn-row">
-      <button class="d-btn d-btn-accent" onclick="rotatePiece()">ROTATE (W / ↑)</button>
+      <button class="d-btn d-btn-accent" onclick="window.rotatePiece()">ROTATE (W / ↑)</button>
     </div>
     <div class="btn-row">
-      <button class="d-btn" onclick="moveLeft()">◄ LEFT (A / ←)</button>
-      <button class="d-btn" onclick="moveDown()">DOWN (S / ↓)</button>
-      <button class="d-btn" onclick="moveRight()">RIGHT ► (D / →)</button>
+      <button class="d-btn" onclick="window.moveLeft()">◄ LEFT (A / ←)</button>
+      <button class="d-btn" onclick="window.moveDown()">DOWN (S / ↓)</button>
+      <button class="d-btn" onclick="window.moveRight()">RIGHT ► (D / →)</button>
     </div>
     <div class="btn-row">
-      <button class="d-btn d-btn-accent" style="background: #aa5500; border-color: #ffaa00;" onclick="hardDrop()">HARD DROP (SPACE)</button>
+      <button class="d-btn d-btn-accent" style="background: #aa5500; border-color: #ffaa00;" onclick="window.hardDrop()">HARD DROP (SPACE)</button>
     </div>
   </div>
 
-  <a-scene embedded physics="debug: false">
+  <a-scene embedded physics="debug: false" tetris-game-loop>
     
     <!-- Asset Management -->
     <a-assets>
-      <!-- Bevelled 3D Block Template with high visual depth -->
+      <!-- Dual-layer Beveled Block Outer Mixin -->
       <a-mixin id="block-mixin" 
                geometry="primitive: box; width: 0.92; height: 0.92; depth: 0.92" 
-               material="roughness: 0.1; metalness: 0.85; opacity: 0.96; transparent: true"></a-mixin>
+               material="roughness: 0.15; metalness: 0.85; opacity: 0.96; transparent: true"></a-mixin>
+      <!-- 3D VR Holographic Button Mixin -->
       <a-mixin id="btn-mixin" 
                geometry="primitive: box; width: 0.95; height: 0.48; depth: 0.2" 
                material="color: #121235; roughness: 0.2; metalness: 0.8; emissive: #0055aa; emissiveIntensity: 0.3"
@@ -119,10 +121,10 @@
                animation__mouseleave="property: components.material.material.color; type: color; to: #121235; startEvents: mouseleave; dur: 120"></a-mixin>
     </a-assets>
 
-    <!-- Camera Rig + Center Gaze Cursor -->
+    <!-- Camera Rig + Center Ring Gaze Cursor -->
     <a-entity id="camera-rig" position="0 8 13">
       <a-camera id="head" look-controls="enabled: true" wasd-controls="enabled: false">
-        <!-- Center Ring Gaze Cursor -->
+        <!-- Center Gaze Cursor -->
         <a-cursor id="cursor"
                   position="0 0 -1"
                   geometry="primitive: ring; radiusInner: 0.015; radiusOuter: 0.028"
@@ -133,6 +135,9 @@
                   animation__mouseleave="property: scale; startEvents: mouseleave; easing: easeInCubic; dur: 120; to: 1 1 1">
         </a-cursor>
       </a-camera>
+      <!-- WebXR Tracked Controllers (Gaze / Laser Raycaster Support) -->
+      <a-entity laser-controls="hand: left" raycaster="objects: .clickable; interval: 30"></a-entity>
+      <a-entity laser-controls="hand: right" raycaster="objects: .clickable; interval: 30"></a-entity>
     </a-entity>
 
     <!-- Lighting -->
@@ -141,19 +146,19 @@
     <a-point-light color="#ff00aa" intensity="1.5" position="0 10 6" distance="25"></a-point-light>
     <a-point-light color="#00ffaa" intensity="1.2" position="0 2 2" distance="18"></a-point-light>
 
-    <!-- Cyber Neon Environment Sky & Floor Grid -->
+    <!-- Cyber Neon Environment -->
     <a-sky color="#02020a"></a-sky>
     <a-grid material="color: #005588; opacity: 0.35" radius="50" position="0 -0.1 0"></a-grid>
     <a-plane position="0 -0.05 0" rotation="-90 0 0" width="120" height="120" material="color: #040412; metalness: 0.9; roughness: 0.1"></a-plane>
 
-    <!-- Start Overlay Modal Panel in 3D Space -->
+    <!-- Start Overlay Modal Panel in 3D VR Space -->
     <a-entity id="start-overlay" position="0 8 8">
       <a-plane width="6.8" height="4.8" material="color: #0a0a20; opacity: 0.95; transparent: true; side: double"></a-plane>
       <a-box width="6.9" height="4.9" depth="0.06" position="0 0 -0.05" material="color: #00f0ff; wireframe: true"></a-box>
       <a-text value="3D VR TETRIS" align="center" position="0 1.3 0.1" scale="1.4 1.4 1.4" color="#00f0ff"></a-text>
       <a-text value="Click or Gaze at START to Begin!" align="center" position="0 0.4 0.1" scale="0.6 0.6 0.6" color="#ffffff"></a-text>
       
-      <!-- Big Start Button -->
+      <!-- Start Button -->
       <a-entity id="btn-start-game" class="clickable" mixin="btn-mixin" position="0 -0.8 0.1" geometry="width: 3.4; height: 0.85" material="emissive: #00aa55; emissiveIntensity: 0.5">
         <a-text value="START GAME" align="center" position="0 0 0.1" scale="0.95 0.95 0.95" color="#00ffaa"></a-text>
       </a-entity>
@@ -161,10 +166,10 @@
 
     <!-- Tetris 3D Glass Matrix Box Container (10x20) -->
     <a-entity id="board-container" position="0 0 0">
-      <!-- Back Wall Background Panel with Grid Texture Overlay -->
+      <!-- Back Wall Background Panel -->
       <a-plane position="0 10 -0.52" width="10" height="20" material="color: #08081c; opacity: 0.82; transparent: true; side: double"></a-plane>
       
-      <!-- Cage Frame Wireframe Outline for Visual Depth -->
+      <!-- Cage Wireframe Outline -->
       <a-box position="0 10 0" width="10.1" height="20.1" depth="1.05" material="color: #00f0ff; wireframe: true; opacity: 0.35; transparent: true"></a-box>
 
       <!-- Glass Side Pillars -->
@@ -173,14 +178,17 @@
       <!-- Bottom Base Frame -->
       <a-box position="0 -0.1 0" width="10.7" height="0.25" depth="1.4" material="color: #ff0077; emissive: #aa0044; emissiveIntensity: 0.6"></a-box>
 
-      <!-- Target Clickable Grid Column Overlay for Click-to-Place -->
+      <!-- Clickable Column Grid Overlay for Click-to-Snap -->
       <a-entity id="interactive-grid-overlay"></a-entity>
 
       <!-- Container for Locked Grid Cubes -->
       <a-entity id="locked-blocks-container"></a-entity>
 
-      <!-- Container for Active Falling Tetromino Blocks -->
+      <!-- Container for Active Falling Piece -->
       <a-entity id="active-piece-container"></a-entity>
+
+      <!-- Line Clear Flash FX Overlay -->
+      <a-plane id="line-clear-flash" position="0 10 0.1" width="10" height="20" material="color: #ffffff; opacity: 0; transparent: true" visible="false"></a-plane>
     </a-entity>
 
     <!-- HUD Stats Panel (Left Side) -->
@@ -213,11 +221,11 @@
       <a-plane width="3.6" height="3.6" material="color: #08081a; opacity: 0.88; transparent: true; side: double"></a-plane>
       <a-box width="3.7" height="3.7" depth="0.05" position="0 0 -0.05" material="color: #ff00aa; wireframe: true"></a-box>
       <a-text value="NEXT" align="center" position="0 1.25 0.05" scale="0.8 0.8 0.8" color="#ff00aa"></a-text>
-      <!-- Preview Sub-container -->
+      <!-- Preview Container -->
       <a-entity id="next-piece-container" position="0 -0.25 0.2"></a-entity>
     </a-entity>
 
-    <!-- 3D Interactive Controls Panel (Positioned in front for VR Tapping/Gaze) -->
+    <!-- 3D Interactive Controls Panel in Front for VR Touch/Gaze -->
     <a-entity position="0 1.2 3.8" rotation="-22 0 0">
       <!-- Row 1: Left / Rotate / Right -->
       <a-entity id="btn-left" class="clickable" mixin="btn-mixin" position="-2.3 0.6 0">
@@ -284,7 +292,7 @@
           osc.stop(this.ctx.currentTime + duration);
         } catch (e) {}
       },
-      playMove() { this.playTone(320, 'sine', 0.08, 0.05); },
+      playMove() { this.playTone(340, 'sine', 0.08, 0.05); },
       playRotate() { this.playTone(480, 'triangle', 0.1, 0.08); },
       playDrop() { this.playTone(180, 'square', 0.12, 0.08); },
       playClear() {
@@ -301,14 +309,14 @@
       }
     };
 
-    // Tetris Core Game Constants
+    // Grid Dimensions
     const BOARD_WIDTH = 10;
     const BOARD_HEIGHT = 20;
 
-    // Distinct Vivid Neon Palette for each Tetromino Piece
+    // Signature Color Palette per Tetromino
     const TETROMINOES = {
       I: {
-        color: '#00f0f0', emissive: '#00ffff', innerGlow: '#80ffff',
+        color: '#00f0f0', emissive: '#00ffff', innerGlow: '#a6ffff',
         matrix: [
           [0, 0, 0, 0],
           [1, 1, 1, 1],
@@ -317,7 +325,7 @@
         ]
       },
       J: {
-        color: '#0044ff', emissive: '#3377ff', innerGlow: '#88b5ff',
+        color: '#0055ff', emissive: '#3377ff', innerGlow: '#99bbff',
         matrix: [
           [1, 0, 0],
           [1, 1, 1],
@@ -325,7 +333,7 @@
         ]
       },
       L: {
-        color: '#ff8800', emissive: '#ffaa00', innerGlow: '#ffdd88',
+        color: '#ff7700', emissive: '#ffaa00', innerGlow: '#ffdd99',
         matrix: [
           [0, 0, 1],
           [1, 1, 1],
@@ -333,14 +341,14 @@
         ]
       },
       O: {
-        color: '#ffff00', emissive: '#ffff66', innerGlow: '#ffffaa',
+        color: '#ffdd00', emissive: '#ffff55', innerGlow: '#ffffaa',
         matrix: [
           [1, 1],
           [1, 1]
         ]
       },
       S: {
-        color: '#00ff44', emissive: '#33ff77', innerGlow: '#99ffbb',
+        color: '#00ff44', emissive: '#33ff77', innerGlow: '#a6ffcc',
         matrix: [
           [0, 1, 1],
           [1, 1, 0],
@@ -348,7 +356,7 @@
         ]
       },
       T: {
-        color: '#aa00ff', emissive: '#e044ff', innerGlow: '#f099ff',
+        color: '#aa00ff', emissive: '#e044ff', innerGlow: '#f0b3ff',
         matrix: [
           [0, 1, 0],
           [1, 1, 1],
@@ -356,7 +364,7 @@
         ]
       },
       Z: {
-        color: '#ff0044', emissive: '#ff4466', innerGlow: '#ff99aa',
+        color: '#ff0044', emissive: '#ff4466', innerGlow: '#ffb3c2',
         matrix: [
           [1, 1, 0],
           [0, 1, 1],
@@ -367,7 +375,7 @@
 
     const PIECE_TYPES = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
 
-    // Game Variables
+    // Game State Variables
     let grid = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(null));
     let score = 0;
     let linesCleared = 0;
@@ -376,17 +384,18 @@
     let isGameOver = false;
     let isPaused = false;
     let dropInterval = 1000;
-    let lastDropTime = 0;
+    let dropTimerAccumulator = 0;
 
     let currentPiece = null;
     let nextPieceType = null;
 
-    // DOM References
+    // DOM Elements
     const startOverlay = document.getElementById('start-overlay');
     const lockedContainer = document.getElementById('locked-blocks-container');
     const activeContainer = document.getElementById('active-piece-container');
     const nextContainer = document.getElementById('next-piece-container');
     const interactiveGridOverlay = document.getElementById('interactive-grid-overlay');
+    const lineClearFlash = document.getElementById('line-clear-flash');
 
     const scoreEl = document.getElementById('hud-score');
     const levelEl = document.getElementById('hud-level');
@@ -395,7 +404,7 @@
     const finalScoreEl = document.getElementById('final-score-text');
     const btnPauseText = document.getElementById('btn-pause-text');
 
-    // 2D Matrix to 3D Coordinate conversion
+    // 2D to 3D Coordinate conversion
     function boardTo3D(x, y) {
       return {
         x: x - (BOARD_WIDTH / 2) + 0.5,
@@ -404,17 +413,17 @@
       };
     }
 
-    // Helper to construct individual 3D Bevelled Block Cubes with High-Contrast Inner Glow Core
+    // Beveled 3D Block Builder (Dual-Layer: Outer Shell + Glowing Core)
     function createBlockMesh(color, emissive, innerGlow, intensity = 0.65, isClickable = false) {
       const parent = document.createElement('a-entity');
       
-      // Main Box Outer Shell with Bevel Border
+      // Outer Beveled Metallic Box
       const outerBox = document.createElement('a-entity');
       outerBox.setAttribute('mixin', 'block-mixin');
       if (isClickable) outerBox.setAttribute('class', 'clickable');
       outerBox.setAttribute('material', `color: ${color}; emissive: ${emissive}; emissiveIntensity: ${intensity}; roughness: 0.15; metalness: 0.85`);
 
-      // Inner Glowing Core Box matching piece shape distinct glow
+      // Inner Glowing Core Box
       const innerCore = document.createElement('a-box');
       innerCore.setAttribute('width', '0.62');
       innerCore.setAttribute('height', '0.62');
@@ -426,7 +435,7 @@
       return parent;
     }
 
-    // Spawn Piece
+    // Spawn New Tetromino
     function spawnPiece() {
       if (!nextPieceType) {
         nextPieceType = PIECE_TYPES[Math.floor(Math.random() * PIECE_TYPES.length)];
@@ -459,7 +468,7 @@
       }
     }
 
-    // Render Next Piece Preview in 3D Side Panel
+    // Render Next Piece Preview
     function renderNextPiecePreview() {
       nextContainer.innerHTML = '';
       const template = TETROMINOES[nextPieceType];
@@ -479,7 +488,7 @@
       }
     }
 
-    // Render Active Falling Piece in 3D Matrix
+    // Render Active Piece
     function renderActivePiece() {
       activeContainer.innerHTML = '';
       if (!currentPiece) return;
@@ -493,10 +502,9 @@
 
             if (boardY < BOARD_HEIGHT) {
               const pos = boardTo3D(boardX, boardY);
-              const blockGroup = createBlockMesh(currentPiece.color, currentPiece.emissive, currentPiece.innerGlow, 0.8, true);
+              const blockGroup = createBlockMesh(currentPiece.color, currentPiece.emissive, currentPiece.innerGlow, 0.85, true);
               blockGroup.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
 
-              // Direct tap/click on falling piece moves it down fast
               blockGroup.addEventListener('click', () => {
                 AudioEngine.init();
                 moveDown();
@@ -530,7 +538,7 @@
       return false;
     }
 
-    // Lock Piece into Grid Matrix with distinct signature colors
+    // Lock Piece to Grid
     function lockPiece() {
       const matrix = currentPiece.matrix;
       for (let r = 0; r < matrix.length; r++) {
@@ -556,7 +564,7 @@
       spawnPiece();
     }
 
-    // Render Placed/Locked Cubes maintaining their signature piece colors
+    // Render Placed Grid Blocks
     function renderLockedBlocks() {
       lockedContainer.innerHTML = '';
       for (let y = 0; y < BOARD_HEIGHT; y++) {
@@ -564,7 +572,7 @@
           const cell = grid[y][x];
           if (cell) {
             const pos = boardTo3D(x, y);
-            const blockGroup = createBlockMesh(cell.color, cell.emissive, cell.innerGlow, 0.45, false);
+            const blockGroup = createBlockMesh(cell.color, cell.emissive, cell.innerGlow, 0.5, false);
             blockGroup.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
             lockedContainer.appendChild(blockGroup);
           }
@@ -572,7 +580,7 @@
       }
     }
 
-    // Line Clears & Scoring System
+    // Line Clears and Flash FX
     function checkLineClears() {
       let linesToClear = [];
 
@@ -589,6 +597,14 @@
 
       if (linesToClear.length > 0) {
         AudioEngine.playClear();
+
+        // Flash visual effect on clear
+        lineClearFlash.setAttribute('visible', 'true');
+        lineClearFlash.setAttribute('material', 'opacity: 0.4');
+        setTimeout(() => {
+          lineClearFlash.setAttribute('material', 'opacity: 0');
+          lineClearFlash.setAttribute('visible', 'false');
+        }, 150);
 
         linesToClear.forEach(rowIdx => {
           grid.splice(rowIdx, 1);
@@ -608,26 +624,26 @@
       }
     }
 
-    // Controls Logic
-    function moveLeft() {
+    // Player Actions
+    window.moveLeft = function() {
       if (!gameStarted || isGameOver || isPaused || !currentPiece) return;
       if (!checkCollision(currentPiece.matrix, currentPiece.x - 1, currentPiece.y)) {
         currentPiece.x--;
         AudioEngine.playMove();
         renderActivePiece();
       }
-    }
+    };
 
-    function moveRight() {
+    window.moveRight = function() {
       if (!gameStarted || isGameOver || isPaused || !currentPiece) return;
       if (!checkCollision(currentPiece.matrix, currentPiece.x + 1, currentPiece.y)) {
         currentPiece.x++;
         AudioEngine.playMove();
         renderActivePiece();
       }
-    }
+    };
 
-    function moveDown() {
+    window.moveDown = function() {
       if (!gameStarted || isGameOver || isPaused || !currentPiece) return;
       if (!checkCollision(currentPiece.matrix, currentPiece.x, currentPiece.y - 1)) {
         currentPiece.y--;
@@ -635,18 +651,18 @@
       } else {
         lockPiece();
       }
-    }
+    };
 
-    function hardDrop() {
+    window.hardDrop = function() {
       if (!gameStarted || isGameOver || isPaused || !currentPiece) return;
       while (!checkCollision(currentPiece.matrix, currentPiece.x, currentPiece.y - 1)) {
         currentPiece.y--;
       }
       renderActivePiece();
       lockPiece();
-    }
+    };
 
-    function rotatePiece() {
+    window.rotatePiece = function() {
       if (!gameStarted || isGameOver || isPaused || !currentPiece) return;
       const matrix = currentPiece.matrix;
       const N = matrix.length;
@@ -667,9 +683,9 @@
         AudioEngine.playRotate();
         renderActivePiece();
       }
-    }
+    };
 
-    // Direct Column Targeting (Click/Gaze on column snaps active block)
+    // Column Direct Click Snap
     function snapToColumn(targetCol) {
       if (!gameStarted || isGameOver || isPaused || !currentPiece) return;
       
@@ -684,7 +700,6 @@
       }
     }
 
-    // Column Overlays
     function initInteractiveGridOverlay() {
       interactiveGridOverlay.innerHTML = '';
       for (let x = 0; x < BOARD_WIDTH; x++) {
@@ -739,6 +754,7 @@
       linesCleared = 0;
       level = 1;
       dropInterval = 1000;
+      dropTimerAccumulator = 0;
       grid = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(null));
 
       startOverlay.setAttribute('visible', 'false');
@@ -751,36 +767,35 @@
       spawnPiece();
     }
 
-    // Animation Game Loop
-    function gameLoop(timestamp) {
-      if (!lastDropTime) lastDropTime = timestamp;
-
-      if (gameStarted && !isGameOver && !isPaused) {
-        if (timestamp - lastDropTime > dropInterval) {
-          moveDown();
-          lastDropTime = timestamp;
+    // Registration of Engine-Driven A-Frame Component tick Loop for WebVR Compliance
+    AFRAME.registerComponent('tetris-game-loop', {
+      init: function () {},
+      tick: function (time, timeDelta) {
+        if (gameStarted && !isGameOver && !isPaused) {
+          dropTimerAccumulator += timeDelta;
+          if (dropTimerAccumulator >= dropInterval) {
+            window.moveDown();
+            dropTimerAccumulator = 0;
+          }
         }
       }
+    });
 
-      requestAnimationFrame(gameLoop);
-    }
-
-    // Attach Event Handlers
+    // Event Handlers Setup
     function setupEventListeners() {
-      // Start Game Event
       document.getElementById('btn-start-game').addEventListener('click', startGame);
 
       // 3D VR Button Controls
-      document.getElementById('btn-left').addEventListener('click', () => { AudioEngine.init(); moveLeft(); });
-      document.getElementById('btn-right').addEventListener('click', () => { AudioEngine.init(); moveRight(); });
-      document.getElementById('btn-rotate').addEventListener('click', () => { AudioEngine.init(); rotatePiece(); });
-      document.getElementById('btn-soft-drop').addEventListener('click', () => { AudioEngine.init(); moveDown(); });
-      document.getElementById('btn-hard-drop').addEventListener('click', () => { AudioEngine.init(); hardDrop(); });
+      document.getElementById('btn-left').addEventListener('click', () => { AudioEngine.init(); window.moveLeft(); });
+      document.getElementById('btn-right').addEventListener('click', () => { AudioEngine.init(); window.moveRight(); });
+      document.getElementById('btn-rotate').addEventListener('click', () => { AudioEngine.init(); window.rotatePiece(); });
+      document.getElementById('btn-soft-drop').addEventListener('click', () => { AudioEngine.init(); window.moveDown(); });
+      document.getElementById('btn-hard-drop').addEventListener('click', () => { AudioEngine.init(); window.hardDrop(); });
 
       document.getElementById('btn-pause').addEventListener('click', () => { AudioEngine.init(); togglePause(); });
       document.getElementById('btn-restart').addEventListener('click', () => { startGame(); });
 
-      // Keyboard Hotkeys
+      // Keyboard Controls
       window.addEventListener('keydown', (e) => {
         AudioEngine.init();
         if (!gameStarted && (e.key === ' ' || e.key === 'Enter')) {
@@ -792,25 +807,25 @@
           case 'ArrowLeft':
           case 'a':
           case 'A':
-            moveLeft();
+            window.moveLeft();
             break;
           case 'ArrowRight':
           case 'd':
           case 'D':
-            moveRight();
+            window.moveRight();
             break;
           case 'ArrowUp':
           case 'w':
           case 'W':
-            rotatePiece();
+            window.rotatePiece();
             break;
           case 'ArrowDown':
           case 's':
           case 'S':
-            moveDown();
+            window.moveDown();
             break;
           case ' ':
-            hardDrop();
+            window.hardDrop();
             break;
           case 'p':
           case 'P':
@@ -820,7 +835,6 @@
       });
     }
 
-    // Load Handler
     window.addEventListener('load', () => {
       const scene = document.querySelector('a-scene');
       if (scene.hasLoaded) {
@@ -833,7 +847,6 @@
     function initGame() {
       initInteractiveGridOverlay();
       setupEventListeners();
-      requestAnimationFrame(gameLoop);
     }
   </script>
 </body>
